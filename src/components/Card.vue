@@ -20,14 +20,21 @@
   </g>
 </template>
 <script lang="ts">
-import {Vue, Component, Prop, Watch, Mixins} from "vue-property-decorator";
+import {Vue, Component, Prop, Watch, Mixins, Inject} from "vue-property-decorator";
 import {Card as ICard} from "take6-engine";
 import Draggable from './Draggable.vue';
+import { UIData } from '../types/ui-data';
 
 @Component({
   created(this: Card) {
     this.$on("draggedTo", (coords: {x: number, y: number}) => {
       [this.currentX, this.currentY] = [coords.x, coords.y];
+    });
+
+    this.$on("hook:beforeDestroy", () => {
+      if (this.card?.number && this.ui.cards[this.card.number] === this) {
+        delete this.ui.cards[this.card.number];
+      }
     });
   }
 })
@@ -41,6 +48,9 @@ export default class Card extends Mixins(Draggable) {
     y: number,
     rotation: number
   };
+
+  @Inject()
+  readonly ui!: UIData;
 
   currentX = 0;
   currentY = 0;
@@ -62,7 +72,7 @@ export default class Card extends Mixins(Draggable) {
   }
 
   @Watch("dragging")
-  @Watch("targetState")
+  @Watch("targetState", {immediate: true})
   onTargetChanged() {
     console.log("target changed");
     if (this.dragging) {
@@ -74,6 +84,24 @@ export default class Card extends Mixins(Draggable) {
 
     this.currentX = this.targetState.x;
     this.currentY = this.targetState.y;
+  }
+
+  @Watch("card", {immediate: true})
+  onCardChanged(newCard?: ICard, oldCard?: ICard) {
+    const oldCardNumber = oldCard?.number ?? 0;
+    const newCardNumber = newCard?.number ?? 0;
+
+    if (oldCardNumber === newCardNumber) {
+      return;
+    }
+
+    if (oldCardNumber) {
+      delete this.ui.cards[oldCardNumber];
+    }
+
+    if (newCardNumber) {
+      this.ui.cards[newCardNumber] = this;
+    }
   }
 }
 
@@ -107,8 +135,8 @@ export default class Card extends Mixins(Draggable) {
   }
 
   text {
-    font-family: sans-serif;
-    font-size: 12;
+    font-family: 'Arial';
+    font-size: 12px;
     pointer-events: none;
     text-anchor: middle;
     dominant-baseline: central;

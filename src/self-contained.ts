@@ -24,7 +24,8 @@ function launchSelfContained (selector = "#app") {
     }));
   });
 
-  emitter.emit("state", cloneDeep(gameState));
+  emitter.emit("player", {index: 0});
+  emitter.emit("state", cloneDeep(stripSecret(gameState, 0)));
 }
 
 export default launchSelfContained;
