@@ -1,0 +1,79 @@
+<script lang="ts">
+import {Vue, Component, Prop, Watch} from "vue-property-decorator";
+
+@Component({
+  mounted(this: Draggable) {
+    this.$nextTick(() => {
+      const endDrag = () => this.endDrag();
+      const drag = (event: MouseEvent) => this.drag(event);
+
+      this.htmlElement.addEventListener("mousedown", event => this.startDrag(event));
+
+      this.svgElement.addEventListener("mouseleave", endDrag);
+      this.svgElement.addEventListener("mouseup", endDrag);
+      this.svgElement.addEventListener("mousemove", drag);
+
+      this.$on("hook:beforeDestroy", () => this.svgElement.removeEventListener("mouseleave", endDrag));
+      this.$on("hook:beforeDestroy", () => this.svgElement.removeEventListener("mouseup", endDrag));
+      this.$on("hook:beforeDestroy", () => this.svgElement.removeEventListener("mousemove", drag));
+    });
+  }
+})
+export default class Draggable extends Vue {
+  _dragging = false;
+  _offset = {x: 0, y: 0};
+  _transform?: SVGTransform;
+
+  get svgElement() {
+    return document.querySelector("#scene") as SVGSVGElement;
+  }
+
+  get htmlElement() {
+    return this.$el as SVGGElement;
+  }
+
+  startDrag(evt: MouseEvent) {
+    this._dragging = true;
+
+    this._offset = this.getMousePosition(evt);
+    // Get all the transforms currently on this element
+    const transforms: SVGTransformList = this.htmlElement.transform.baseVal;
+    // Ensure the first transform is a translate transform
+    if (transforms.numberOfItems === 0 ||
+        transforms.getItem(0).type !== SVGTransform.SVG_TRANSFORM_TRANSLATE) {
+      // Create an transform that translates by (0, 0)
+      const translate = this.svgElement.createSVGTransform();
+      translate.setTranslate(0, 0);
+      // Add the translation to the front of the transforms list
+      this.htmlElement.transform.baseVal.insertItemBefore(translate, 0);
+    }
+    // Get initial translation amount
+    this._transform = transforms.getItem(0);
+    this._offset.x -= this._transform.matrix.e;
+    this._offset.y -= this._transform.matrix.f;
+  }
+
+  drag(evt: MouseEvent) {
+    if (!this._dragging) {
+      return;
+    }
+
+    evt.preventDefault();
+    const coord = this.getMousePosition(evt);
+    this._transform!.setTranslate(coord.x - this._offset.x, coord.y - this._offset.y);
+  }
+
+  endDrag() {
+    this._dragging = false;
+  }
+
+  getMousePosition(evt: MouseEvent) {
+    const CTM = this.svgElement.getScreenCTM()!;
+    return {
+      x: (evt.clientX - CTM.e) / CTM.a,
+      y: (evt.clientY - CTM.f) / CTM.d
+    };
+  }
+}
+
+</script>
