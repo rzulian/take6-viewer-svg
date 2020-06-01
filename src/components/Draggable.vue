@@ -20,7 +20,7 @@ import {Vue, Component, Prop, Watch} from "vue-property-decorator";
   }
 })
 export default class Draggable extends Vue {
-  _dragging = false;
+  dragging = false;
   _offset = {x: 0, y: 0};
   _transform?: SVGTransform;
 
@@ -33,7 +33,7 @@ export default class Draggable extends Vue {
   }
 
   startDrag(evt: MouseEvent) {
-    this._dragging = true;
+    this.dragging = true;
 
     this._offset = this.getMousePosition(evt);
     // Get all the transforms currently on this element
@@ -54,17 +54,19 @@ export default class Draggable extends Vue {
   }
 
   drag(evt: MouseEvent) {
-    if (!this._dragging) {
+    if (!this.dragging) {
       return;
     }
 
     evt.preventDefault();
     const coord = this.getMousePosition(evt);
     this._transform!.setTranslate(coord.x - this._offset.x, coord.y - this._offset.y);
+
+    this.$emit("draggedTo", {x: coord.x - this._offset.x, y: coord.y - this._offset.y});
   }
 
   endDrag() {
-    this._dragging = false;
+    this.dragging = false;
   }
 
   getMousePosition(evt: MouseEvent) {
