@@ -207,10 +207,14 @@ export default class Game extends Vue {
     this.G!.players[this.player].availableMoves = null;
 
     if (player !== undefined) {
+      this._futureState!.log.push({player: this.player!, type: "move", move: {name: MoveName.ChooseCard, data: card}});
       this.emitter.emit("move", {name: MoveName.ChooseCard, data: card});
     } else {
+      this._futureState!.log.push({player: this.player!, type: "move", move: {name: MoveName.PlaceCard, data: commands.placeCard!.find(item => item.row === row)!}});
       this.emitter.emit("move", {name: MoveName.PlaceCard, data: commands.placeCard!.find(item => item.row === row)});
     }
+
+    this.updateUI();
   }
 
   loadAvailableMoves(availableMoves: AvailableMoves[]) {
