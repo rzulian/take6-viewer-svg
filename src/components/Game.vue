@@ -2,6 +2,11 @@
   <div class="game">
     <svg viewBox="-350 -250 700 500" id="scene">
       <PlayerLabel />
+      <template v-for="row in 4">
+        <template v-for="rowPos in 6">
+          <PlaceHolder :key="`board-${row-1}-${rowPos-1}`" :row=row-1 :rowPos=rowPos-1 :danger="rowPos===6" :transform="`translate(${-203 + (rowPos-1) * 55}, ${((row - 1) - 1.5) * 80 - 75})`" />
+        </template>
+      </template>
       <Card v-for="(card, i) in handCards" :card="card" :key="card.number || `hand-${i}`" :targetState="handTargetState(handCards.length - 1 - i)" />
     </svg>
   </div>
@@ -11,6 +16,7 @@ import { Vue, Component, Prop, Watch, Provide } from 'vue-property-decorator';
 import { LogItem, GameState } from 'take6-engine';
 import { EventEmitter } from 'events';
 import Card from "./Card.vue";
+import PlaceHolder from "./Placeholder.vue";
 import PlayerLabel from "./PlayerLabel.vue";
 import { UIData } from '../types/ui-data';
 
@@ -20,6 +26,7 @@ import { UIData } from '../types/ui-data';
   },
   components: {
     Card,
+    PlaceHolder,
     PlayerLabel
   }
 })
@@ -34,7 +41,7 @@ export default class Game extends Vue {
   emitter!: EventEmitter;
 
   @Provide()
-  ui: UIData = {cards: {}};
+  ui: UIData = {cards: {}, placeholders: {rows: [], players: []}};
 
   _futureState?: GameState;
 
