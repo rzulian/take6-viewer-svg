@@ -20,15 +20,21 @@
   </g>
 </template>
 <script lang="ts">
-import {Vue, Component, Prop, Watch, Mixins, Inject} from "vue-property-decorator";
-import {Card as ICard} from "take6-engine";
+import { Vue, Component, Prop, Watch, Mixins, Inject, InjectReactive } from "vue-property-decorator";
+import { Card as ICard } from "take6-engine";
 import Draggable from './Draggable.vue';
 import { UIData } from '../types/ui-data';
+import { EventEmitter } from 'events';
 
 @Component({
   created(this: Card) {
     this.$on("draggedTo", (coords: {x: number, y: number}) => {
       [this.currentX, this.currentY] = [coords.x, coords.y];
+
+      this.$nextTick(() => {
+        console.log("emitting event", this.communicator);
+        this.communicator.emit("draggedPosChanged");
+      });
     });
 
     this.$on("hook:beforeDestroy", () => {
@@ -48,6 +54,9 @@ export default class Card extends Mixins(Draggable) {
     y: number,
     rotation: number
   };
+
+  @Inject()
+  readonly communicator!: EventEmitter;
 
   @Inject()
   readonly ui!: UIData;
@@ -101,6 +110,17 @@ export default class Card extends Mixins(Draggable) {
 
     if (newCardNumber) {
       this.ui.cards[newCardNumber] = this;
+    }
+  }
+
+  @Watch("dragging")
+  onDraggingChanged() {
+    console.log("changing dragged")
+    if (this.dragging) {
+      this.ui.dragged = this;
+    } else {
+      this.ui.dragged = null;
+      this.communicator.emit("draggedPosChanged");
     }
   }
 }

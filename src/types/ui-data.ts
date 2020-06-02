@@ -7,4 +7,5 @@ export interface UIData {
     rows: Placeholder[][];
     players: Placeholder[];
   };
+  dragged?: Vue | null;
 }

@@ -9,12 +9,12 @@
       </defs>
 
       <!-- Players -->
-      <PlayerLabel :player="state.players[player || 0]" :playerIndex=player :main=true :points=state.players[player||0].points transform="translate(0, 210)" />
-      <PlaceHolder :player="player || 0" transform="translate(-220, 170)" />
+      <PlayerLabel :player="state.players[player || 0]" :playerIndex=player :main=true :points=state.players[player||0].points transform="translate(0, 210)" v-if="state" />
+      <PlaceHolder :player="player || 0" transform="translate(-220, 170)" :playerTurn="canPlayerMove(player||0)" :enabled="canPlayerMove(player||0) && !state.players[player].facedownCard" v-if="state" />
 
       <template v-for="(player, i) in otherPlayers">
         <PlayerLabel :player="state.players[player]" :playerIndex=player :points=state.players[player].points :transform="`translate(${i <= 5 ? 173 + 145 * (i % 2) : -317}, ${i <= 5 ? -218 + 110 * Math.floor(i /2) : -218 + 110 * (i - 6)})`" :key="'label-'+player" />
-        <PlaceHolder :player="player" :key="'placehold-player-' + player" :transform="`translate(${i <= 5 ? 173 + 145 * (i % 2) : -317}, ${i <= 5 ? -163 + 110 * Math.floor(i /2) : -163 + 110 * (i - 6)})`" />
+        <PlaceHolder :player="player" :playerTurn="canPlayerMove(player)" :key="'placehold-player-' + player" :transform="`translate(${i <= 5 ? 173 + 145 * (i % 2) : -317}, ${i <= 5 ? -163 + 110 * Math.floor(i /2) : -163 + 110 * (i - 6)})`" />
       </template>
 
       <!-- Board -->
@@ -64,6 +64,9 @@ export default class Game extends Vue {
   @Provide()
   ui: UIData = {cards: {}, placeholders: {rows: [], players: []}};
 
+  @Provide()
+  communicator: EventEmitter = new EventEmitter();
+
   _futureState?: GameState;
 
   addLog ({ log, start }: {log: LogItem[]; start: number}) {
@@ -98,6 +101,10 @@ export default class Game extends Vue {
       return [];
     }
     return range(0, this.state.players.length).filter(pl => pl !== (this.player || 0));
+  }
+
+  canPlayerMove(player: number) {
+    return !!this.state?.players[player]?.availableMoves;
   }
 }
 
