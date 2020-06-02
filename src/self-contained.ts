@@ -5,7 +5,7 @@ import { cloneDeep } from "lodash";
 function launchSelfContained (selector = "#app") {
   const emitter = launch(selector);
 
-  let gameState = setup(10, {});
+  let gameState = setup(2, {});
 
   for (const player of gameState.players.slice(1)) {
     player.isAI = true;

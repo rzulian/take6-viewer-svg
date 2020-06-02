@@ -28,6 +28,7 @@ import { EventEmitter } from 'events';
 
 @Component({
   created(this: Card) {
+    console.log("created card", this.card.number);
     this.$on("draggedTo", (coords: {x: number, y: number}) => {
       [this.currentX, this.currentY] = [coords.x, coords.y];
 
@@ -46,10 +47,7 @@ import { EventEmitter } from 'events';
     this.mounted = true;
   },
   beforeDestroy(this: Card) {
-    if (this.transitioning) {
-      this.transitioning = false;
-      this.ui.waitingAnimations = Math.max(this.ui.waitingAnimations - 1, 0);
-    }
+    this.onTransitionEnd();
   }
 })
 export default class Card extends Mixins(Draggable) {
@@ -105,8 +103,17 @@ export default class Card extends Mixins(Draggable) {
       this.transitioning = true;
     }
 
-    this.currentX = this.targetState.x;
-    this.currentY = this.targetState.y;
+    if (!this.mounted) {
+      this.currentX = this.targetState.x;
+      this.currentY = this.targetState.y;
+    } else {
+      // Make sure the animation plays by waiting until the class "dragging" is removed
+      // for sure from the element
+      setTimeout(() => {
+        this.currentX = this.targetState.x;
+        this.currentY = this.targetState.y;
+      });
+    }
   }
 
   @Watch("card", {immediate: true})
@@ -139,8 +146,8 @@ export default class Card extends Mixins(Draggable) {
 
   onTransitionEnd() {
     if (this.transitioning) {
-      this.ui.waitingAnimations = Math.max(this.ui.waitingAnimations - 1, 0);
       this.transitioning = false;
+      this.ui.waitingAnimations = Math.max(this.ui.waitingAnimations - 1, 0);
     }
   }
 }

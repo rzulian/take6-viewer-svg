@@ -33,6 +33,12 @@
         </template>
       </template>
 
+      <template v-for="row in 4">
+        <template v-for="rowPos in 6">
+          <Card v-if="G && G.rows[row-1][rowPos-1]" :card="G.rows[row-1][rowPos-1]" :key="G.rows[row-1][rowPos-1].number || 'board-card-'+row+'-'+rowPos" :targetState="boardTargetState(row-1, rowPos-1)" />
+        </template>
+      </template>
+
       <use xlink:href="#dragged"/>
     </svg>
   </div>
@@ -44,7 +50,7 @@ import { EventEmitter } from 'events';
 import Card from "./Card.vue";
 import PlaceHolder from "./Placeholder.vue";
 import PlayerLabel from "./PlayerLabel.vue";
-import { range, isEqual } from "lodash";
+import { range, isEqual, sumBy } from "lodash";
 import { UIData } from '../types/ui-data';
 
 @Component({
@@ -126,7 +132,6 @@ export default class Game extends Vue {
     };
   }
 
-
   facedownTargetState(player: number) {
     const placeholder = this.ui.placeholders.players[player];
 
@@ -138,6 +143,14 @@ export default class Game extends Vue {
       y: transform.matrix.f,
       rotation: 0
     }
+  }
+
+  boardTargetState(row: number, rowPos: number) {
+    return {
+      x: -203 + rowPos * 55,
+      y: (row - 1.5) * 80 - 75,
+      rotation: 0
+    };
   }
 
   get otherPlayers() {
@@ -181,13 +194,20 @@ export default class Game extends Vue {
     if (this.ui.waitingAnimations > 0) {
       return;
     }
+    if (this.animationQueue.length > 0) {
+      this.animationQueue.shift()!();
+      setTimeout(() => this.updateUI());
+      return;
+    }
     if (this.G!.log.length < this._futureState!.log.length) {
       this.advanceLog();
+      setTimeout(() => this.updateUI());
       return;
     }
   }
 
   advanceLog() {
+    console.log("advancing log", this.G!.log.length, this._futureState!.log.length);
     const logItem = this._futureState!.log[this.G!.log.length];
     this.G!.log.push(logItem);
 
@@ -198,6 +218,7 @@ export default class Game extends Vue {
 
         switch (move.name) {
           case MoveName.ChooseCard: {
+            console.log("choosing card", player);
             this.G!.players[player].faceDownCard = move.data;
 
             this.delay(200);
@@ -210,35 +231,39 @@ export default class Game extends Vue {
             return;
           }
           case MoveName.PlaceCard: {
+            console.log("placing card", player);
             const card = this.G!.players[player].faceDownCard!;
+            this.G!.players[player].faceDownCard = null;
+
             if (move.data.replace) {
               // put new card on 6th spot
               this.G!.rows[move.data.row][5] = card;
-              this.G!.players[player].faceDownCard = null;
+              this.G!.rows = [...this.G!.rows];
 
-              // this.queueAnimation(() => {
-              //   console.log("delaying before taking row");
-              //   this.delay(200);
-              // });
-              // this.queueAnimation(() => {
-              //   console.log("Taking row");
-              //   // Then remove all existing cards from row
-              //   for (const card of this.state.rows[move.data.row]) {
-              //     store.ui!.cards[card.number].destroy();
-              //   }
-              //   this.state.players[player].points += sumBy(this.state.rows[move.data.row], "points");
+              this.queueAnimation(() => {
+                console.log("delaying before taking row");
+                this.delay(200);
+              });
+              this.queueAnimation(() => {
+                console.log("Taking row");
+                this.G!.players[player].points += sumBy(this.G!.rows[move.data.row], "points");
                 this.G!.rows[move.data.row] = [];
+                this.G!.rows = [...this.G!.rows];
 
-              //   console.log("delaying after taking row");
-              //   this.delay(300);
-              // });
+                console.log("delaying after taking row");
+                this.delay(300);
+              });
+              // Then move card to correct spot
+              this.queueAnimation(() => {
+                console.log("attracting card to place on board", card);
+                this.G!.rows[move.data.row].push(card);
+                this.G!.rows = [...this.G!.rows];
+              });
+            } else {
+              this.G!.rows[move.data.row].push(card);
+              this.G!.rows = [...this.G!.rows];
             }
 
-            // Then move card to correct spot
-            // this.queueAnimation(() => {
-            //   console.log("attracting card to place on board", card);
-              this.G!.rows[move.data.row].push(card);
-            // });
             return;
           }
           default: return;
@@ -270,10 +295,18 @@ export default class Game extends Vue {
 
   delay(ms: number) {
     this.ui.waitingAnimations += 1;
-    setTimeout(() => this.ui.waitingAnimations = Math.max(this.ui.waitingAnimations - 1, 0), ms);
+    setTimeout(() => {
+      console.log("decreasing animations", this.ui.waitingAnimations);
+      this.ui.waitingAnimations = Math.max(this.ui.waitingAnimations - 1, 0);
+    }, ms);
+  }
+
+  queueAnimation(anim: Function) {
+    this.animationQueue.push(anim);
   }
 
   _pendingAvailableMoves: {index: number, availableMoves: AvailableMoves[]} | null = null;
+  animationQueue: Array<Function> = [];
 }
 
 </script>
