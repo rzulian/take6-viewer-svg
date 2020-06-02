@@ -110,6 +110,10 @@ export default class Game extends Vue {
   background-color: #444;
 }
 
+#scene {
+  max-height: 100%;
+}
+
 body, html {
   height: 100%;
   width: 100%;
