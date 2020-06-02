@@ -4,10 +4,11 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "test:unit": "vue-cli-service test:unit"
+    "test:unit": "vue-cli-service test:unit",
+    "package": "vue-cli-service build --target lib src/wrapper.ts",
+    "prepublishOnly": "npm run package"
   },
   "dependencies": {
-    "assert": "^2.0.0",
     "core-js": "^3.6.5",
     "lodash": "^4.17.15",
     "take6-engine": "^0.4.7",
@@ -30,5 +31,11 @@
     "sass-loader": "^8.0.2",
     "typescript": "~3.9.3",
     "vue-template-compiler": "^2.6.11"
-  }
+  },
+  "files": [
+    "src",
+    "dist/take6-viewer-svg.umd.min.js",
+    "dist/take6-viewer-svg.css",
+    "tsconfig.json"
+  ]
 }
