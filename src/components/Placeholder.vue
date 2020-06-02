@@ -7,6 +7,7 @@
 import {Vue, Component, Prop, Watch, Inject, InjectReactive} from "vue-property-decorator";
 import { UIData } from '../types/ui-data';
 import { EventEmitter, Listener } from 'events';
+import { Card } from "take6-engine";
 
 @Component({
   created(this: PlaceHolder) {
@@ -16,11 +17,6 @@ import { EventEmitter, Listener } from 'events';
     } else if (this.player !== undefined) {
       this.ui.placeholders.players[this.player] = this;
     }
-
-    const listener = () => this.updateOverlapping();
-
-    this.communicator.on("draggedPosChanged", listener);
-    this.$on("hook:beforeDestroy", () => this.communicator.off("draggedPosChanged", listener));
   }
 })
 export default class PlaceHolder extends Vue {
@@ -41,14 +37,14 @@ export default class PlaceHolder extends Vue {
 
   overlapping = false;
 
-  updateOverlapping() {
-    console.log("triggered");
+  updateOverlapping(card: Card) {
     if (!this.enabled || !this.ui.dragged) {
-      this.overlapping = false;
+      if (this.overlapping && this.enabled && !this.ui.dragged) {
+        this.$emit("cardDrop", card, {row: this.row, rowPos: this.rowPos, player: this.player});
+        this.overlapping = false;
+      }
       return;
     }
-
-    console.log((this.ui.dragged as any).currentX);
 
     const rect1 = this.$el.getBoundingClientRect();
     const rect2 = this.ui.dragged!.$el.getBoundingClientRect();
@@ -59,7 +55,7 @@ export default class PlaceHolder extends Vue {
   @Watch("enabled", {immediate: true})
   onEnabledChanged() {
     if (!this.listener) {
-      this.listener = () => this.updateOverlapping();
+      this.listener = (card) => this.updateOverlapping(card);
       this.$on("hook:beforeDestroy", () => this.communicator.off("draggedPosChanged", this.listener!));
     }
 

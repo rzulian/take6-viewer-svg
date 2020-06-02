@@ -32,8 +32,7 @@ import { EventEmitter } from 'events';
       [this.currentX, this.currentY] = [coords.x, coords.y];
 
       this.$nextTick(() => {
-        console.log("emitting event", this.communicator);
-        this.communicator.emit("draggedPosChanged");
+        this.communicator.emit("draggedPosChanged", this.card);
       });
     });
 
@@ -120,7 +119,7 @@ export default class Card extends Mixins(Draggable) {
       this.ui.dragged = this;
     } else {
       this.ui.dragged = null;
-      this.communicator.emit("draggedPosChanged");
+      this.communicator.emit("draggedPosChanged", this.card);
     }
   }
 }

@@ -11,7 +11,7 @@ function launchSelfContained (selector = "#app") {
     player.isAI = true;
   }
 
-  emitter.on("move", (move: Move) => {
+  emitter.on("move", async (move: Move) => {
     const index = gameState.log.length;
     gameState = execMove(gameState, move, 0);
 
@@ -21,10 +21,14 @@ function launchSelfContained (selector = "#app") {
 
     emitter.emit("gamelog", cloneDeep({
       start: index,
-      log: stripSecret(gameState, 0).log.slice(index),
-      availableMoves: stripSecret(gameState, 0).players.map(pl => pl.availableMoves)
+      data: {
+        log: stripSecret(gameState, 0).log.slice(index),
+        availableMoves: stripSecret(gameState, 0).players.map(pl => pl.availableMoves)
+      }
     }));
   });
+
+  emitter.on('fetchSate', () => emitter.emit("state", cloneDeep(stripSecret(gameState, 0))));
 
   emitter.emit("player", {index: 0});
   emitter.emit("state", cloneDeep(stripSecret(gameState, 0)));

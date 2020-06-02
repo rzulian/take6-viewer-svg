@@ -14,6 +14,7 @@ function launch (selector: string) {
   const item: EventEmitter = new EventEmitter();
 
   params.emitter.on("move", (move: Move) => item.emit("move", move));
+  params.emitter.on("fetchState", () => item.emit("fetchState"));
 
   item.addListener("state", data => {
     console.log("updating state to", data);
@@ -26,6 +27,7 @@ function launch (selector: string) {
     app.$forceUpdate();
   });
   item.addListener("gamelog", logData => {
+    console.log("receiving log data", logData);
     params.emitter.emit("addLog", { start: logData.start, log: logData.data.log, availableMoves: logData.data.availableMoves });
   });
 
