@@ -135,11 +135,7 @@ export default class Card extends Mixins(Draggable) {
   }
 
   text {
-    font-family: 'Arial';
     font-size: 12px;
-    pointer-events: none;
-    text-anchor: middle;
-    dominant-baseline: central;
   }
 
   .point {

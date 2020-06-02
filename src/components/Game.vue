@@ -1,23 +1,42 @@
 <template>
   <div class="game">
     <svg viewBox="-350 -250 700 500" id="scene">
-      <PlayerLabel />
+      <defs>
+        <filter id="shadow">
+          <feGaussianBlur stdDeviation="0.5 0.5" result="shadow"/>
+          <feOffset dx="1" dy="1"/>
+        </filter>
+      </defs>
+
+      <!-- Players -->
+      <PlayerLabel :player="state.players[player || 0]" :playerIndex=player :main=true :points=state.players[player||0].points transform="translate(0, 210)" />
+      <PlaceHolder :player="player || 0" transform="translate(-220, 170)" />
+
+      <template v-for="(player, i) in otherPlayers">
+        <PlayerLabel :player="state.players[player]" :playerIndex=player :points=state.players[player].points :transform="`translate(${i <= 5 ? 173 + 145 * (i % 2) : -317}, ${i <= 5 ? -218 + 110 * Math.floor(i /2) : -218 + 110 * (i - 6)})`" :key="'label-'+player" />
+        <PlaceHolder :player="player" :key="'placehold-player-' + player" :transform="`translate(${i <= 5 ? 173 + 145 * (i % 2) : -317}, ${i <= 5 ? -163 + 110 * Math.floor(i /2) : -163 + 110 * (i - 6)})`" />
+      </template>
+
+      <!-- Board -->
       <template v-for="row in 4">
         <template v-for="rowPos in 6">
           <PlaceHolder :key="`board-${row-1}-${rowPos-1}`" :row=row-1 :rowPos=rowPos-1 :danger="rowPos===6" :transform="`translate(${-203 + (rowPos-1) * 55}, ${((row - 1) - 1.5) * 80 - 75})`" />
         </template>
       </template>
+
+      <!-- All the cards -->
       <Card v-for="(card, i) in handCards" :card="card" :key="card.number || `hand-${i}`" :targetState="handTargetState(handCards.length - 1 - i)" />
     </svg>
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop, Watch, Provide } from 'vue-property-decorator';
+import { Vue, Component, Prop, Watch, Provide, ProvideReactive } from 'vue-property-decorator';
 import { LogItem, GameState } from 'take6-engine';
 import { EventEmitter } from 'events';
 import Card from "./Card.vue";
 import PlaceHolder from "./Placeholder.vue";
 import PlayerLabel from "./PlayerLabel.vue";
+import { range } from "lodash";
 import { UIData } from '../types/ui-data';
 
 @Component({
@@ -71,6 +90,13 @@ export default class Game extends Vue {
       rotation: angle * 180 / Math.PI
     };
   }
+
+  get otherPlayers() {
+    if (!this.state) {
+      return [];
+    }
+    return range(0, this.state.players.length).filter(pl => pl !== (this.player || 0));
+  }
 }
 
 </script>
@@ -87,6 +113,13 @@ body, html {
   width: 100%;
   margin: 0;
   padding: 0;
+}
+
+text {
+  font-family: 'Arial';
+  pointer-events: none;
+  text-anchor: middle;
+  dominant-baseline: central;
 }
 
 </style>

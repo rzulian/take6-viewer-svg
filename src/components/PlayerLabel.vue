@@ -1,17 +1,52 @@
 <template>
-  <g :transform="`translate(${x}, ${y})`">
+  <g :class="['player-label', {main}]">
+    <text style="filter: url(#shadow); fill: white" class="shadow" >{{player.name || `Player ${playerIndex + 1}`}}</text>
+    <text class="player-name">{{player.name || `Player ${playerIndex + 1}`}}</text>
+    <text class="points" y="14">{{player.points}}</text>
   </g>
 </template>
 <script lang="ts">
 import {Vue, Component, Prop, Watch} from "vue-property-decorator";
+import type {Player} from "take6-engine";
 
 @Component
 export default class PlayerLabel extends Vue {
-  @Prop()
-  x!: number;
+  @Prop({default: false})
+  main!: boolean;
 
   @Prop()
-  y!: number;
+  player!: Player;
+
+  @Prop()
+  playerIndex!: number;
 }
 
 </script>
+<style lang="scss">
+.player-label {
+  &.main {
+    fill: orange;
+  }
+
+  &.main .player-name {
+    font-size: 12px;
+  }
+
+  &.main .shadow {
+    font-size: 12px;
+    opacity: 0.4;
+  }
+
+  .player-name, .shadow {
+    font-size: 11px;
+  }
+
+  .shadow {
+    opacity: 0.2;
+  }
+
+  .points {
+    font-size: 10px;
+  }
+}
+</style>
