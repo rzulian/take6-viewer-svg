@@ -8,4 +8,5 @@ export interface UIData {
     players: Placeholder[];
   };
   dragged?: Vue | null;
+  waitingAnimations: number;
 }

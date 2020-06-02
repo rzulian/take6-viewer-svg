@@ -68,7 +68,7 @@ export default class Game extends Vue {
   emitter!: EventEmitter;
 
   @Provide()
-  ui: UIData = {cards: {}, placeholders: {rows: [], players: []}};
+  ui: UIData = {cards: {}, placeholders: {rows: [], players: []}, waitingAnimations: 0};
 
   @Provide()
   communicator: EventEmitter = new EventEmitter();
@@ -176,9 +176,14 @@ export default class Game extends Vue {
     }
   }
 
+  @Watch("ui.waitingAnimations")
   updateUI() {
+    if (this.ui.waitingAnimations > 0) {
+      return;
+    }
     if (this.G!.log.length < this._futureState!.log.length) {
       this.advanceLog();
+      return;
     }
   }
 
@@ -195,7 +200,7 @@ export default class Game extends Vue {
           case MoveName.ChooseCard: {
             this.G!.players[player].faceDownCard = move.data;
 
-            // this.delay(200);
+            this.delay(200);
 
             if (player === (this.player || 0)) {
               this.G!.players[this.player!].hand = this.handCards!.filter(card => card.number !== move.data.number);
@@ -261,6 +266,11 @@ export default class Game extends Vue {
         }
       }
     }
+  }
+
+  delay(ms: number) {
+    this.ui.waitingAnimations += 1;
+    setTimeout(() => this.ui.waitingAnimations = Math.max(this.ui.waitingAnimations - 1, 0), ms);
   }
 
   _pendingAvailableMoves: {index: number, availableMoves: AvailableMoves[]} | null = null;

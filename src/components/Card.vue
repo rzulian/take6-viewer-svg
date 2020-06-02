@@ -1,5 +1,5 @@
 <template>
-  <g :class="['card', {dragging}]" :id="dragging ? 'dragged' : undefined" ref="card" :transform="`translate(${currentX}, ${currentY}), rotate(${rotation})`">
+  <g :class="['card', {dragging}]" :id="dragging ? 'dragged' : undefined" ref="card" :transform="`translate(${currentX}, ${currentY}), rotate(${rotation})`" @transitionend="onTransitionEnd">
     <rect x="-20" y="-30" width="40" height="60" :class="['card-body', {facedown}]" />
     <text v-if="!facedown">{{number}}</text>
 
@@ -41,6 +41,15 @@ import { EventEmitter } from 'events';
         delete this.ui.cards[this.card.number];
       }
     });
+  },
+  mounted(this: Card) {
+    this.mounted = true;
+  },
+  beforeDestroy(this: Card) {
+    if (this.transitioning) {
+      this.transitioning = false;
+      this.ui.waitingAnimations = Math.max(this.ui.waitingAnimations - 1, 0);
+    }
   }
 })
 export default class Card extends Mixins(Draggable) {
@@ -62,6 +71,8 @@ export default class Card extends Mixins(Draggable) {
 
   currentX = 0;
   currentY = 0;
+  mounted = false;
+  transitioning = false;
 
   get facedown() {
     return !this.card || this.card.number === 0;
@@ -81,13 +92,17 @@ export default class Card extends Mixins(Draggable) {
 
   @Watch("dragging")
   @Watch("targetState", {immediate: true})
-  onTargetChanged() {
-    console.log("target changed");
+  onTargetChanged(newVal: boolean, oldVal: boolean) {
     if (this.dragging) {
       return;
     }
     if (this.targetState.x === this.currentX && this.targetState.y === this.currentY) {
       return;
+    }
+
+    if (!this.transitioning && this.mounted && ! (oldVal && !newVal)) {
+      this.ui.waitingAnimations += 1;
+      this.transitioning = true;
     }
 
     this.currentX = this.targetState.x;
@@ -114,12 +129,18 @@ export default class Card extends Mixins(Draggable) {
 
   @Watch("dragging")
   onDraggingChanged() {
-    console.log("changing dragged")
     if (this.dragging) {
       this.ui.dragged = this;
     } else {
       this.ui.dragged = null;
       this.communicator.emit("draggedPosChanged", this.card);
+    }
+  }
+
+  onTransitionEnd() {
+    if (this.transitioning) {
+      this.ui.waitingAnimations = Math.max(this.ui.waitingAnimations - 1, 0);
+      this.transitioning = false;
     }
   }
 }
