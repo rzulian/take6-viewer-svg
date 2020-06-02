@@ -1,5 +1,5 @@
 <template>
-  <g :class="['card', {dragging}]" ref="card" :transform="`translate(${currentX}, ${currentY}), rotate(${rotation})`">
+  <g :class="['card', {dragging}]" :id="dragging ? 'dragged' : undefined" ref="card" :transform="`translate(${currentX}, ${currentY}), rotate(${rotation})`">
     <rect x="-20" y="-30" width="40" height="60" :class="['card-body', {facedown}]" />
     <text v-if="!facedown">{{number}}</text>
 
@@ -119,19 +119,20 @@ export default class Card extends Mixins(Draggable) {
     stroke: red;
     stroke-width: 1;
 
-    &:not(.facedown) {
-      fill: #6666ff;
-
-      &:hover {
-        fill: green;
-      }
-
-      cursor: pointer;
-    }
+    fill: #6666ff;
+    cursor: pointer;
 
     &.facedown {
       fill: #ccc;
     }
+
+    &:hover {
+      fill: green;
+    }
+  }
+
+  &.dragging .card-body {
+    fill: green;
   }
 
   text {

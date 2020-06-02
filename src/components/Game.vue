@@ -26,6 +26,8 @@
 
       <!-- All the cards -->
       <Card v-for="(card, i) in handCards" :card="card" :key="card.number || `hand-${i}`" :targetState="handTargetState(handCards.length - 1 - i)" />
+
+      <use xlink:href="#dragged"/>
     </svg>
   </div>
 </template>
