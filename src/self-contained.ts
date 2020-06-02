@@ -5,13 +5,14 @@ import { cloneDeep } from "lodash";
 function launchSelfContained (selector = "#app") {
   const emitter = launch(selector);
 
-  let gameState = setup(2, {});
+  let gameState = setup(10, {});
 
   for (const player of gameState.players.slice(1)) {
     player.isAI = true;
   }
 
   emitter.on("move", async (move: Move) => {
+    console.log("move received", JSON.stringify(move));
     const index = gameState.log.length;
     gameState = execMove(gameState, move, 0);
 

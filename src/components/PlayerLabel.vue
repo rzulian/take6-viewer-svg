@@ -2,6 +2,7 @@
   <g :class="['player-label', {main}]">
     <text style="filter: url(#shadow); fill: white" class="shadow" >{{player.name || `Player ${playerIndex + 1}`}}</text>
     <text class="player-name">{{player.name || `Player ${playerIndex + 1}`}}</text>
+    <text class="points" :y="main ? 13 : 11.5" style="stroke: #ffffff33;">{{player.points}}</text>
     <text class="points" :y="main ? 13 : 11.5">{{player.points}}</text>
   </g>
 </template>

@@ -7818,10 +7818,10 @@ symbol-tree@^3.2.2:
   resolved "https://registry.yarnpkg.com/symbol-tree/-/symbol-tree-3.2.4.tgz#430637d248ba77e078883951fb9aa0eed7c63fa2"
   integrity sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==
 
-take6-engine@^0.4.5:
-  version "0.4.5"
-  resolved "https://registry.yarnpkg.com/take6-engine/-/take6-engine-0.4.5.tgz#ffa89b4aec0a5264bd6caa3a3f5156d9de0baadd"
-  integrity sha512-79zf7kuCIoFY8Kgv0JLUDidSDY6QgzjwJeFTSeHwhE7886reI+mtGjIi610yg8DdlQb3BqQfRbuC3MAlh5n1TA==
+take6-engine@^0.4.7:
+  version "0.4.7"
+  resolved "https://registry.yarnpkg.com/take6-engine/-/take6-engine-0.4.7.tgz#b60562c45614fe458186deccf3387f5745c65cd6"
+  integrity sha512-wMxAe0zb5rPqivE2wyw8vjdqH1PlGZkA+u4k1vg0lA08ZOsgT2RrfioAUp6WN+wYt+QR+48A3B9+4rucINRRYw==
   dependencies:
     "@types/lodash" "^4.14.149"
     "@types/seedrandom" "^2.4.27"

@@ -5,9 +5,20 @@ import {Vue, Component, Prop, Watch} from "vue-property-decorator";
   mounted(this: Draggable) {
     this.$nextTick(() => {
       const endDrag = () => this.endDrag();
-      const drag = (event: MouseEvent) => this.drag(event);
+      const drag = (event: MouseEvent | TouchEvent) => this.drag(event);
 
       this.htmlElement.addEventListener("mousedown", event => this.startDrag(event));
+      this.htmlElement.addEventListener('touchstart', event => this.startDrag(event));
+
+      this.svgElement.addEventListener('touchmove', drag);
+      this.svgElement.addEventListener('touchend', endDrag);
+      this.svgElement.addEventListener('touchleave', endDrag);
+      this.svgElement.addEventListener('touchcancel', endDrag);
+
+      this.$on("hook:beforeDestroy", () => this.svgElement.removeEventListener("touchmove", drag));
+      this.$on("hook:beforeDestroy", () => this.svgElement.removeEventListener("touchend", endDrag));
+      this.$on("hook:beforeDestroy", () => this.svgElement.removeEventListener("touchleave", endDrag));
+      this.$on("hook:beforeDestroy", () => this.svgElement.removeEventListener("touchcancel", endDrag));
 
       this.svgElement.addEventListener("mouseleave", endDrag);
       this.svgElement.addEventListener("mouseup", endDrag);
@@ -32,7 +43,7 @@ export default class Draggable extends Vue {
     return this.$el as SVGGElement;
   }
 
-  startDrag(evt: MouseEvent) {
+  startDrag(evt: MouseEvent | TouchEvent) {
     this.dragging = true;
 
     this._offset = this.getMousePosition(evt);
@@ -53,7 +64,7 @@ export default class Draggable extends Vue {
     this._offset.y -= this._transform.matrix.f;
   }
 
-  drag(evt: MouseEvent) {
+  drag(evt: MouseEvent | TouchEvent) {
     if (!this.dragging) {
       return;
     }
@@ -69,11 +80,14 @@ export default class Draggable extends Vue {
     this.dragging = false;
   }
 
-  getMousePosition(evt: MouseEvent) {
+  getMousePosition(evt: MouseEvent | TouchEvent) {
+    if ((evt as TouchEvent).touches) {
+      evt = (evt as TouchEvent).touches[0] as any;
+    }
     const CTM = this.svgElement.getScreenCTM()!;
     return {
-      x: (evt.clientX - CTM.e) / CTM.a,
-      y: (evt.clientY - CTM.f) / CTM.d
+      x: ((evt as any).clientX - CTM.e) / CTM.a,
+      y: ((evt as any).clientY - CTM.f) / CTM.d
     };
   }
 }

@@ -10,7 +10,7 @@
 
       <!-- Players -->
       <PlayerLabel :player="G.players[player || 0]" :playerIndex=player :main=true :points=G.players[player||0].points transform="translate(0, 210)" v-if="G" />
-      <PlaceHolder :player="player || 0" transform="translate(-220, 170)" :playerTurn="canPlayerMove(player||0)" :enabled="canPlayerMove(player||0) && !G.players[player].facedownCard" v-if="G" @cardDrop="onCardDrop" />
+      <PlaceHolder :player="player || 0" transform="translate(-220, 170)" :playerTurn="canPlayerMove(player||0)" :enabled="canPlayerMove(player||0) && !G.players[player||0].faceDownCard" v-if="G" @cardDrop="onCardDrop" />
 
       <template v-for="(player, i) in otherPlayers">
         <PlayerLabel :player="G.players[player]" :playerIndex=player :points=G.players[player].points :transform="`translate(${i <= 5 ? 173 + 115 * (i % 2) : -300}, ${i <= 5 ? -218 + 110 * Math.floor(i /2) : -218 + 110 * (i - 6)})`" :key="'label-'+player" />
@@ -20,7 +20,15 @@
       <!-- Board -->
       <template v-for="row in 4">
         <template v-for="rowPos in 6">
-          <PlaceHolder :key="`board-${row-1}-${rowPos-1}`" :row=row-1 :rowPos=rowPos-1 :danger="rowPos===6" :transform="`translate(${-203 + (rowPos-1) * 55}, ${((row - 1) - 1.5) * 80 - 75})`" />
+          <PlaceHolder
+            :key="`board-${row-1}-${rowPos-1}`"
+            :row=row-1
+            :rowPos=rowPos-1
+            :danger="rowPos===6"
+            :transform="`translate(${-203 + (rowPos-1) * 55}, ${((row - 1) - 1.5) * 80 - 75})`"
+            :enabled="isPlaceholderEnabled(row-1, rowPos-1)"
+            @cardDrop="onCardDrop"
+          />
         </template>
       </template>
 
@@ -105,8 +113,8 @@ export default class Game extends Vue {
 
 
     this._futureState!.log = [...this._futureState!.log.slice(0, start), ...log];
-    this.updateUI();
     this._pendingAvailableMoves = {index: start + log.length, availableMoves: availableMoves};
+    this.updateUI();
   }
 
   @Watch("state", { immediate: true })
@@ -153,6 +161,26 @@ export default class Game extends Vue {
     };
   }
 
+  isPlaceholderEnabled(row: number, rowPos: number) {
+    if (!this.G || this.player === undefined) {
+      return false;
+    }
+
+    const availableMoves = this.G!.players[this.player].availableMoves;
+
+    const choice = availableMoves?.placeCard?.find(pos => pos.row === row);
+
+    if (!choice) {
+      return false;
+    }
+
+    if (choice.replace) {
+      return rowPos === 5;
+    } else {
+      return rowPos === this.G.rows[choice.row].length;
+    }
+  }
+
   get otherPlayers() {
     if (!this.G) {
       return [];
@@ -170,23 +198,26 @@ export default class Game extends Vue {
       return;
     }
 
+    const commands = this.G!.players[this.player].availableMoves!;
+
+    if (this.G!.log.length !== this._futureState!.log.length) {
+      return;
+    }
+
+    this.G!.players[this.player].availableMoves = null;
+
     if (player !== undefined) {
-      const commands = this.G!.players[this.player].availableMoves;
-
-      if (this.G!.log.length !== this._futureState!.log.length) {
-        return;
-      }
-
-      this.G!.players[this.player].availableMoves = null;
-
       this.emitter.emit("move", {name: MoveName.ChooseCard, data: card});
+    } else {
+      this.emitter.emit("move", {name: MoveName.PlaceCard, data: commands.placeCard!.find(item => item.row === row)});
     }
   }
 
   loadAvailableMoves(availableMoves: AvailableMoves[]) {
     for (let i = 0; i < availableMoves.length; i++) {
-      this.G!.players[this.player!].availableMoves = availableMoves[i];
+      this.G!.players[i].availableMoves = availableMoves[i];
     }
+    this._pendingAvailableMoves = null;
   }
 
   @Watch("ui.waitingAnimations")
@@ -203,6 +234,11 @@ export default class Game extends Vue {
       this.advanceLog();
       setTimeout(() => this.updateUI());
       return;
+    }
+
+    if (this._pendingAvailableMoves && this._pendingAvailableMoves.index === this.G!.log.length) {
+      console.log("loading available moves", JSON.stringify(this._pendingAvailableMoves));
+      this.loadAvailableMoves(this._pendingAvailableMoves.availableMoves);
     }
   }
 
@@ -248,6 +284,7 @@ export default class Game extends Vue {
                 console.log("Taking row");
                 this.G!.players[player].points += sumBy(this.G!.rows[move.data.row], "points");
                 this.G!.rows[move.data.row] = [];
+                this.G!.rows[move.data.row][5] = card;
                 this.G!.rows = [...this.G!.rows];
 
                 console.log("delaying after taking row");
@@ -255,8 +292,7 @@ export default class Game extends Vue {
               });
               // Then move card to correct spot
               this.queueAnimation(() => {
-                console.log("attracting card to place on board", card);
-                this.G!.rows[move.data.row].push(card);
+                this.G!.rows[move.data.row] = [card];
                 this.G!.rows = [...this.G!.rows];
               });
             } else {
@@ -279,11 +315,17 @@ export default class Game extends Vue {
               this.G!.players[player].faceDownCard = cards[player];
             }
 
+            this.delay(200);
+
             return;
           }
           case GameEventName.RoundStart: {
+            console.log(JSON.parse(JSON.stringify(event)));
             this.G!.rows = event.cards.board.map(card => [card]) as [ICard[], ICard[], ICard[], ICard[]];
-            this.G!.players.forEach((pl, i) => pl.hand = event.cards.players[i]);
+
+            for (let i = 0; i < this.G!.players.length; i++) {
+              this.G!.players[i].hand = event.cards.players[i];
+            }
 
             return;
           }

@@ -10,7 +10,7 @@
     "assert": "^2.0.0",
     "core-js": "^3.6.5",
     "lodash": "^4.17.15",
-    "take6-engine": "^0.4.5",
+    "take6-engine": "^0.4.7",
     "vue": "^2.6.11",
     "vue-class-component": "^7.2.3",
     "vue-property-decorator": "^8.4.2"

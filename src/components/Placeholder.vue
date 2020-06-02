@@ -40,6 +40,7 @@ export default class PlaceHolder extends Vue {
   updateOverlapping(card: Card) {
     if (!this.enabled || !this.ui.dragged) {
       if (this.overlapping && this.enabled && !this.ui.dragged) {
+        // console.log("emitting card drop");
         this.$emit("cardDrop", card, {row: this.row, rowPos: this.rowPos, player: this.player});
         this.overlapping = false;
       }
