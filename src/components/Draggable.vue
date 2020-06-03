@@ -34,6 +34,7 @@ export default class Draggable extends Vue {
   dragging = false;
   _offset = {x: 0, y: 0};
   _transform?: SVGTransform;
+  _dragStart?: number;
 
   get svgElement() {
     return document.querySelector("#scene") as SVGSVGElement;
@@ -62,6 +63,7 @@ export default class Draggable extends Vue {
     this._transform = transforms.getItem(0);
     this._offset.x -= this._transform.matrix.e;
     this._offset.y -= this._transform.matrix.f;
+    this._dragStart = Date.now();
   }
 
   drag(evt: MouseEvent | TouchEvent) {
@@ -78,6 +80,9 @@ export default class Draggable extends Vue {
 
   endDrag() {
     this.dragging = false;
+    if (Date.now() - this._dragStart! < 250) {
+      this.$emit("fastClick");
+    }
   }
 
   getMousePosition(evt: MouseEvent | TouchEvent) {

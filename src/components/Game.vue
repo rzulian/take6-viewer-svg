@@ -33,11 +33,11 @@
       </template>
 
       <!-- All the cards -->
-      <Card v-for="(card, i) in handCards" :card="card" :key="card.number || `hand-${i}`" :targetState="handTargetState(handCards.length - 1 - i)" />
+      <Card v-for="(card, i) in handCards" :card="card" :key="card.number || `hand-${i}`" :targetState="handTargetState(handCards.length - 1 - i)" @fastClick="onCardDrop(card, {player})" />
 
       <template v-if="G">
         <template v-for="(player, i) in G.players">
-          <Card v-if="player.faceDownCard" :card="player.faceDownCard" :key="player.faceDownCard.number || 'player-'+i" :targetState="facedownTargetState(i)" />
+          <Card v-if="player.faceDownCard" :card="player.faceDownCard" :key="player.faceDownCard.number || 'player-'+i" :targetState="facedownTargetState(i)" @fastClick="onCardDrop(player.faceDownCard, {player: i, autoChooseRow: true})" />
         </template>
       </template>
 
@@ -192,9 +192,9 @@ export default class Game extends Vue {
     return !!this.G?.players[player]?.availableMoves;
   }
 
-  onCardDrop(card: ICard, {player, row, rowPos}: {player?: number, row?: number, rowPos?: number}) {
+  onCardDrop(card: ICard, {player, row, rowPos, autoChooseRow}: {player?: number, row?: number, rowPos?: number, autoChooseRow?: boolean}) {
     console.log("card drop");
-    if (this.player === undefined) {
+    if (this.player === undefined || (player !== undefined && player !== this.player)) {
       return;
     }
 
@@ -204,9 +204,18 @@ export default class Game extends Vue {
       return;
     }
 
+    if (autoChooseRow) {
+      if (commands.placeCard!.length > 1) {
+        return;
+      }
+      row = commands.placeCard![0].row;
+    }
+
     this.G!.players[this.player].availableMoves = null;
 
-    if (player !== undefined) {
+    console.log(player, row, rowPos, autoChooseRow);
+
+    if (player !== undefined && !autoChooseRow) {
       this._futureState!.log.push({player: this.player!, type: "move", move: {name: MoveName.ChooseCard, data: card}});
       this.emitter.emit("move", {name: MoveName.ChooseCard, data: card});
     } else {
@@ -250,6 +259,7 @@ export default class Game extends Vue {
     console.log("advancing log", this.G!.log.length, this._futureState!.log.length);
     const logItem = this._futureState!.log[this.G!.log.length];
     this.G!.log.push(logItem);
+    this.delay(1);
 
     switch (logItem.type) {
       case "phase": return;
