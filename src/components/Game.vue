@@ -161,7 +161,9 @@ export default class Game extends Vue {
     return {
       x: transform.matrix.e,
       y: transform.matrix.f,
-      rotation: 0
+      rotation: 0,
+      // NEEDED to trigger recompute on player change
+      currentPlayer: this.player
     }
   }
 
