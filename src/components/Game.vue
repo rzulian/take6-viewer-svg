@@ -33,7 +33,7 @@
       </template>
 
       <!-- All the cards -->
-      <Card v-for="(card, i) in handCards" :card="card" :key="card.number || `hand-${i}`" :targetState="handTargetState(handCards.length - 1 - i)" @fastClick="onCardDrop(card, {player})" />
+      <Card v-for="(card, i) in [...sortedHandCards].reverse()" :card="card" :key="card.number || `hand-${i}`" :targetState="handTargetState(handCards.length - 1 - i)" @fastClick="onCardDrop(card, {player})" />
 
       <template v-if="G">
         <template v-for="(player, i) in G.players">
@@ -58,7 +58,7 @@ import { EventEmitter } from 'events';
 import Card from "./Card.vue";
 import PlaceHolder from "./Placeholder.vue";
 import PlayerLabel from "./PlayerLabel.vue";
-import { range, isEqual, sumBy } from "lodash";
+import { range, isEqual, sumBy, sortBy } from "lodash";
 import { UIData } from '../types/ui-data';
 
 @Component({
@@ -125,6 +125,10 @@ export default class Game extends Vue {
 
   get handCards() {
     return this.G?.players[this.player!]?.hand;
+  }
+
+  get sortedHandCards() {
+    return sortBy(this.G?.players[this.player!]?.hand ?? [], "number");
   }
 
   handTargetState(index: number) {
