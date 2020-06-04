@@ -212,6 +212,10 @@ export default class Game extends Vue {
 
     const commands = this.G!.players[this.player].availableMoves!;
 
+    if (!commands) {
+      return;
+    }
+
     if (this.G!.log.length !== this._futureState!.log.length) {
       return;
     }
