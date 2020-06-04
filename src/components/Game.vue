@@ -143,6 +143,14 @@ export default class Game extends Vue {
   facedownTargetState(player: number) {
     const placeholder = this.ui.placeholders.players[player];
 
+    if (!placeholder) {
+      return {
+        x: 0,
+        y: 0,
+        rotation: 0
+      };
+    }
+
     const elem: SVGGElement = placeholder.$el as SVGGElement;
     const transform = elem.transform.baseVal.getItem(0);
 
