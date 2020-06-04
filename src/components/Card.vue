@@ -71,6 +71,7 @@ export default class Card extends Mixins(Draggable) {
   currentY = 0;
   mounted = false;
   transitioning = false;
+  transitionCount = 0;
 
   get facedown() {
     return !this.card || this.card.number === 0;
@@ -88,6 +89,25 @@ export default class Card extends Mixins(Draggable) {
     return this.targetState?.rotation ?? 0;
   }
 
+  startTransitioning() {
+    if (this.transitioning) {
+      return;
+    }
+
+    this.ui.waitingAnimations += 1;
+    this.transitioning = true;
+    this.transitionCount += 1;
+
+    const count = this.transitionCount;
+
+    // Safeguard to make sure even if we don't catch the transition end event, we stop the transition
+    setTimeout(() => {
+      if (count === this.transitionCount) {
+        this.onTransitionEnd();
+      }
+    }, 1000);
+  }
+
   @Watch("dragging")
   @Watch("targetState", {immediate: true})
   onTargetChanged(newVal: boolean, oldVal: boolean) {
@@ -99,8 +119,7 @@ export default class Card extends Mixins(Draggable) {
     }
 
     if (!this.transitioning && this.mounted && ! (oldVal && !newVal)) {
-      this.ui.waitingAnimations += 1;
-      this.transitioning = true;
+      this.startTransitioning();
     }
 
     if (!this.mounted) {
@@ -145,6 +164,7 @@ export default class Card extends Mixins(Draggable) {
   }
 
   onTransitionEnd() {
+    console.log("on transition end", this.transitioning);
     if (this.transitioning) {
       this.transitioning = false;
       this.ui.waitingAnimations = Math.max(this.ui.waitingAnimations - 1, 0);

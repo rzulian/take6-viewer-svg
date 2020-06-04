@@ -360,9 +360,13 @@ export default class Game extends Vue {
   delay(ms: number) {
     this.ui.waitingAnimations += 1;
     setTimeout(() => {
-      console.log("decreasing animations", this.ui.waitingAnimations);
       this.ui.waitingAnimations = Math.max(this.ui.waitingAnimations - 1, 0);
     }, ms);
+  }
+
+  @Watch("ui.waitingAnimations")
+  onAnimationNumberChanged() {
+    console.log("waiting animations", this.ui.waitingAnimations, this._futureState!.log.length, this.state!.log.length);
   }
 
   queueAnimation(anim: Function) {
