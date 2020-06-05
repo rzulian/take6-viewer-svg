@@ -7,9 +7,10 @@
           <feOffset dx="1" dy="1"/>
         </filter>
       </defs>
-
+      <!-- Game Info -->
+      <GameInfo :round="round" transform="translate(-190, -240)" />
       <!-- Players -->
-      <PlayerLabel :player="G.players[player || 0]" :playerIndex=player :main=true :points=G.players[player||0].points transform="translate(0, 210)" v-if="G" />
+      <PlayerLabel :player="G.players[player || 0]" :playerIndex=player :main=true :points=G.players[player||0].points transform="translate(-150, 120)" v-if="G" />
       <PlaceHolder :player="player || 0" transform="translate(-220, 170)" :playerTurn="canPlayerMove(player||0)" :enabled="canPlayerMove(player||0) && !G.players[player||0].faceDownCard" v-if="G" @cardDrop="onCardDrop" />
 
       <template v-for="(player, i) in otherPlayers">
@@ -58,6 +59,7 @@ import { EventEmitter } from 'events';
 import Card from "./Card.vue";
 import PlaceHolder from "./Placeholder.vue";
 import PlayerLabel from "./PlayerLabel.vue";
+import GameInfo from "./GameInfo.vue";
 import { range, isEqual, sumBy, sortBy } from "lodash";
 import { UIData } from '../types/ui-data';
 
@@ -68,7 +70,8 @@ import { UIData } from '../types/ui-data';
   components: {
     Card,
     PlaceHolder,
-    PlayerLabel
+    PlayerLabel,
+    GameInfo
   }
 })
 export default class Game extends Vue {
@@ -96,7 +99,6 @@ export default class Game extends Vue {
     console.log("adding log...");
 
     this._pendingAvailableMoves = null;
-
     if (start > this._futureState!.log.length) {
       this.emitter.emit("fetchState");
       return;
@@ -133,16 +135,20 @@ export default class Game extends Vue {
     return sortBy(this.G?.players[this.player!]?.hand ?? [], "number");
   }
 
+  get round(){
+    return this.G?.round;
+  }
+
   handTargetState(index: number) {
     const hand = this.handCards!;
 
     const angle = (index - (hand.length - 1)/2) * 0.03;
-    const anglePos = (index - (hand.length - 1)/2) * 0.04;
+    const xPos = index * 45;
 
     return {
-      x: - Math.cos(Math.PI / 2 + anglePos) * 800,
-      y: - Math.sin(Math.PI / 2 + anglePos) * 800 + 950,
-      rotation: angle * 180 / Math.PI
+      x: -150  +  xPos ,
+      y: 175,
+      rotation: 0
     };
   }
 
@@ -395,7 +401,7 @@ export default class Game extends Vue {
 .game {
   height: 100%;
   width: 100%;
-  background-color: #444;
+  background-color: white;
 }
 
 #scene {
