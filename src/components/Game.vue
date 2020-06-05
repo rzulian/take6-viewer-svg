@@ -76,6 +76,7 @@ export default class Game extends Vue {
   private state?: GameState;
 
   @Prop()
+  @ProvideReactive()
   player?: number;
 
   @Prop()
@@ -87,6 +88,7 @@ export default class Game extends Vue {
   @Provide()
   communicator: EventEmitter = new EventEmitter();
 
+  @ProvideReactive()
   G?: GameState | null = null;
   _futureState?: GameState;
 

@@ -1,5 +1,5 @@
 <template>
-  <g :class="['placeholder', {enabled, playerTurn, danger, overlapping}]">
+  <g :class="['placeholder', {enabled, playerTurn, danger, overlapping, canClick}]" @click="onClick">
     <rect width="50" height="70" x="-25" y="-35" />
   </g>
 </template>
@@ -8,6 +8,7 @@ import {Vue, Component, Prop, Watch, Inject, InjectReactive} from "vue-property-
 import { UIData } from '../types/ui-data';
 import { EventEmitter, Listener } from 'events';
 import { Card } from "take6-engine";
+import { GameState } from 'take6-engine/src/gamestate';
 
 @Component({
   created(this: PlaceHolder) {
@@ -26,6 +27,12 @@ export default class PlaceHolder extends Vue {
   @Inject()
   readonly communicator!: EventEmitter;
 
+  @InjectReactive("player")
+  readonly mainPlayer!: number;
+
+  @InjectReactive()
+  G!: GameState;
+
   @Prop({default: false})
   enabled!: boolean;
 
@@ -42,8 +49,8 @@ export default class PlaceHolder extends Vue {
       if (this.overlapping && this.enabled && !this.ui.dragged) {
         // console.log("emitting card drop");
         this.$emit("cardDrop", card, {row: this.row, rowPos: this.rowPos, player: this.player});
-        this.overlapping = false;
       }
+      this.overlapping = false;
       return;
     }
 
@@ -65,6 +72,20 @@ export default class PlaceHolder extends Vue {
     } else {
       this.communicator.off("draggedPosChanged", this.listener!);
     }
+  }
+
+  get canClick() {
+    return this.enabled && this.row !== undefined;
+  }
+
+  onClick() {
+    if (!this.canClick) {
+      return;
+    }
+
+    this.$emit("cardDrop", this.G.players[this.mainPlayer].faceDownCard, {row: this.row, rowPos: this.rowPos, player: this.player});
+
+    this.overlapping = false;
   }
 
   listener?: Listener;
@@ -100,8 +121,12 @@ g.placeholder {
     stroke: #77ff7755;
   }
 
-  &.overlapping > rect {
+  &.overlapping > rect, &.canClick:hover > rect{
     fill: #ffffff22;
+  }
+
+  &.canClick {
+    cursor: pointer;
   }
 }
 </style>
