@@ -113,7 +113,7 @@ g.placeholder {
 
   &.enabled > rect {
     stroke-width: 2;
-    stroke: #ffffff33;
+    stroke: #71ec1fe3;
   }
 
   &.playerTurn > rect {
