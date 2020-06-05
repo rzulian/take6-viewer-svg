@@ -1,6 +1,6 @@
 <template>
   <g :class="['card', {dragging}]" :id="dragging ? 'dragged' : undefined" ref="card" :transform="`translate(${currentX}, ${currentY}), rotate(${rotation})`" @transitionend="onTransitionEnd">
-    <rect x="-20" y="-30" width="40" height="60" :class="['card-body', {facedown}]" />
+    <rect x="-20" y="-30" width="40" height="60" :class="['card-body', {facedown}, cardColor ]" />
     <text v-if="!facedown">{{number}}</text>
 
     <template v-for="i in points">
@@ -8,7 +8,7 @@
           class="point"
           width="5"
           height="5"
-          fill="red"
+          :fill="pointColor"
           :a="i"
           :key="i"
           :y="yPoint(i)"
@@ -81,6 +81,14 @@ export default class Card extends Mixins(Draggable) {
 
   get points() {
     return this.card?.points ?? 0;
+  }
+
+  get cardColor() {
+    return 'p' + this.card?.points ?? 0;
+  }
+  
+  get pointColor()  {
+    return this.points === 5 ? 'white' : 'red';
   }
 
   get rotation(): number {
@@ -198,12 +206,17 @@ export default class Card extends Mixins(Draggable) {
     stroke: gray;
     stroke-width: 1;
 
-    fill: white;
+    fill: #fafafa;
     cursor: pointer;
 
     &.facedown {
       fill: rgb(28, 81, 196);
     }
+    
+    &.p2 {fill: cornflowerblue;}
+    &.p3 {fill: orange;}
+    &.p5 {fill: red;}
+    &.p7 {fill: violet;}
 
     &:hover {
       fill: green;
