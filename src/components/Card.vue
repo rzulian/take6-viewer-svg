@@ -4,18 +4,16 @@
     <text v-if="!facedown">{{number}}</text>
 
     <template v-for="i in points">
-      <template v-for="j in 2">
         <rect
           class="point"
           width="5"
           height="5"
           fill="red"
           :a="i"
-          :key="i+'-'+j"
-          :x="(j-1) ? 14 - 2.5 : -14 - 2.5"
-          :y="(((i-1) % 2 === 0) ? (- Math.ceil((i-1)/2) * 7.5 - 2.5) : (Math.ceil((i-1)/2) * 7.5) - 2.5)"
+          :key="i"
+          :y="yPoint(i)"
+          :x="xPoint(i)"
           />
-      </template>
     </template>
   </g>
 </template>
@@ -87,6 +85,20 @@ export default class Card extends Mixins(Draggable) {
 
   get rotation(): number {
     return this.targetState?.rotation ?? 0;
+  }
+
+  xPoint( num: number): number {
+    const points = this.card?.points ?? 0;
+    const secondLine = points<4 ? 0 : ( points===5 ? Math.max(num-3,0) : Math.max(num-4,0)  );
+    const point = secondLine>0 ? secondLine : num;
+    const offset = points ===1 || points===3 || (points===5 && secondLine===0) || (points===7 && secondLine>0) ? 2 : 5.75 ;
+    return (((point-1) % 2 === 0) ? (- Math.ceil((point-1)/2) * 7.5 - offset) : (Math.ceil((point-1)/2) * 7.5) - offset)
+  }
+
+  yPoint( num: number): number {
+    const points = this.card?.points ?? 0;
+    const secondLine = points<4 ? 0 : ( points===5 ? Math.max(num-3,0) : Math.max(num-4,0)  );
+    return secondLine>0 ? - 30 + 10 : - 30 + 2.5
   }
 
   startTransitioning() {
@@ -183,14 +195,14 @@ export default class Card extends Mixins(Draggable) {
   }
 
   .card-body {
-    stroke: red;
+    stroke: gray;
     stroke-width: 1;
 
-    fill: #6666ff;
+    fill: white;
     cursor: pointer;
 
     &.facedown {
-      fill: #ccc;
+      fill: rgb(28, 81, 196);
     }
 
     &:hover {
@@ -203,7 +215,7 @@ export default class Card extends Mixins(Draggable) {
   }
 
   text {
-    font-size: 12px;
+    font-size: 20px;
   }
 
   .point {

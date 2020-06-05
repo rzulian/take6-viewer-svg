@@ -18,7 +18,7 @@ export default class GameInfo extends Vue {
 <style lang="scss">
 .game-info {
   text {
-    font-size: 12 px;
+    font-size: 12px;
   }
 }
 </style>
