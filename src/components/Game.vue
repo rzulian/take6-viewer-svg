@@ -314,7 +314,7 @@ export default class Game extends Vue {
               });
               this.queueAnimation(() => {
                 console.log("Taking row");
-                this.G!.players[player].points += sumBy(this.G!.rows[move.data.row], "points");
+                this.G!.players[player].points += sumBy(this.G!.rows[move.data.row].slice(0, 5), "points");
                 this.G!.rows[move.data.row] = [];
                 this.G!.rows[move.data.row][5] = card;
                 this.G!.rows = [...this.G!.rows];
