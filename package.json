@@ -1,6 +1,6 @@
 {
   "name": "@gaia-project/take6-viewer",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
@@ -34,8 +34,8 @@
   },
   "files": [
     "src",
-    "dist/take6-viewer-svg.umd.min.js",
-    "dist/take6-viewer-svg.css",
+    "dist/take6-viewer.umd.min.js",
+    "dist/take6-viewer.css",
     "tsconfig.json"
   ]
 }
