@@ -1,6 +1,6 @@
 <template>
   <div class="game">
-    <svg viewBox="-350 -250 690 500" id="scene">
+    <svg :viewBox="`${viewBoxX} -255 ${viewBoxWidth} 475`" id="scene" style="border: 1px red solid">
       <defs>
         <filter id="shadow">
           <feGaussianBlur stdDeviation="0.5 0.5" result="shadow"/>
@@ -137,6 +137,20 @@ export default class Game extends Vue {
 
   get round(){
     return this.G?.round;
+  }
+
+  get viewBoxX() {
+    return this.G?.players.length! > 7 ? "-350" : "-265";
+  }
+
+  get viewBoxWidth() {
+    if (this.G?.players.length! > 7) {
+      return "690";
+    } else if (this.G?.players.length! > 2) {
+      return "605";
+    } else {
+      return "560";
+    }
   }
 
   handTargetState(index: number) {
