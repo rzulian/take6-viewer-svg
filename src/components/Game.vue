@@ -1,6 +1,6 @@
 <template>
   <div class="game">
-    <svg :viewBox="`${viewBoxX} -255 ${viewBoxWidth} 475`" id="scene" style="border: 1px red solid">
+    <svg :viewBox="`${viewBoxX} -255 ${viewBoxWidth} 475`" id="scene">
       <defs>
         <filter id="shadow">
           <feGaussianBlur stdDeviation="0.5 0.5" result="shadow"/>
@@ -416,10 +416,14 @@ export default class Game extends Vue {
   height: 100%;
   width: 100%;
   background-color: white;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
 }
 
 #scene {
   max-height: 100%;
+  flex-grow: 1;
 }
 
 body, html {
