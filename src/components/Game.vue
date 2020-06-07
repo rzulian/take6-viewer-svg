@@ -375,6 +375,7 @@ export default class Game extends Vue {
           }
           case GameEventName.RoundStart: {
             console.log(JSON.parse(JSON.stringify(event)));
+            this.G!.round += 1;
             this.G!.rows = event.cards.board.map(card => [card]) as [ICard[], ICard[], ICard[], ICard[]];
 
             for (let i = 0; i < this.G!.players.length; i++) {
